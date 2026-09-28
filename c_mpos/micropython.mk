@@ -11,8 +11,13 @@ UNAME_S := $(shell uname -s)
 ifneq ($(MPOS_WEB),1)
 ifneq ($(UNAME_S),Darwin)
     # Non-macOS settings (e.g., Linux)
-    LDFLAGS += -lv4l2
-    SRC_USERMOD_C += $(MOD_DIR)/src/webcam.c
+    # The fully-static link (-static) needs libv4l2.a, which most distros do
+    # not ship; only build the webcam module when it is available.
+    V4L2_STATIC_LIB := $(shell ls /usr/lib/x86_64-linux-gnu/libv4l2.a /usr/lib/libv4l2.a 2>/dev/null | head -n 1)
+    ifneq ($(V4L2_STATIC_LIB),)
+        LDFLAGS += -lv4l2
+        SRC_USERMOD_C += $(MOD_DIR)/src/webcam.c
+    endif
 endif
 endif
 
